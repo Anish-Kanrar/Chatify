@@ -1,7 +1,10 @@
+import { sendWelcomeEmail } from "../emails/emailHandlers.js";
 import { generateToken } from "../lib/utils.js";
 import User from "../models/User.js"
 import bcrypt from "bcryptjs";
-export const signup = async(req, res) => {
+import { ENV } from "../lib/env.js";
+
+export const signup = async (req, res) => {
     const { fullName, email, password } = req.body;
 
     try {
@@ -48,14 +51,21 @@ export const signup = async(req, res) => {
                 fullName: newUser.fullName,
                 email: newUser.email,
                 profilePic: newUser.profilePic,
-            })
+            });
+
+            //todo: send a welcome email to user
+            try {
+                await sendWelcomeEmail(savedUser.email, savedUser.fullName, ENV.CLIENT_URL);
+            } catch (error) {
+                console.error("Failed to send welcome email:", error);
+            }
         }
-        else{
-            res.status(400).json({message:"Invalid user data"})
+        else {
+            res.status(400).json({ message: "Invalid user data" })
         }
     } catch (error) {
         console.log("Error in signup controller:", error);
-        res.status(500).json({message: "Internal server error"})
-        
+        res.status(500).json({ message: "Internal server error" })
+
     }
 }
